@@ -1,5 +1,5 @@
 build: src
-	ghc -o flp21-fun src/main.hs
+	ghc -Wall -o flp21-fun src/main.hs src/Cnf.hs src/Easy.hs src/Parser.hs
 
 run:
 	./flp21-fun
@@ -7,3 +7,5 @@ run:
 test:
 	./test.sh
 	
+clean:
+	cd src;rm *.hi *.o 

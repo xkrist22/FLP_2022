@@ -16,6 +16,8 @@ Výstup programu (gramatika v CNF) je vždy vypsána na `stdout`.
 - -2: na `stdout` je vypsána vstupní gramatika v CNF,
 - vstupní soubor: volitelný parametr, povinně uváděn až za výše uvedenými parametry, není-li uveden, pak je vstup očekáván na `stdin`. 
 
+V případě kombinace více parametrů definujících mód programu je program ukončen a není provedena žádná akce. V případě, že není uveden žádný argument, vstup je očekáván na stdout a je proveden převod na CNF. Není možné uvést samotný vstupní soubor bez módu programu.
+
 ### Formát vstupu
 Bezkontextová gramatika je čtveřive obsahující konečnou množinu neterminálů, konečnou množinu terminálů, konečnou množinu přepisovacích pravidel a počáteční neterminál. V rámci projektu je množina neterminálů podmnožinou velkých písmen a množina terminálů podmnožinou malých písmen. Vstupní soubor (či vstup na `stdout` pak musí splňovat následující formát:
 	seznam všech neterminálů oddělených čárkami
@@ -25,7 +27,14 @@ Bezkontextová gramatika je čtveřive obsahující konečnou množinu netermin�
 	pravidlo 2
 	...
 	pravidlo n
-Přičemž levá strana pravidel obsahuje právě 1 neterminál, pravá strana pak kombinaci terminálů a neterminálů (vyjma slova epsilon). Obě strany pravidel jsou odděleny šipkou "->".
+přičemž levá strana pravidel obsahuje právě 1 neterminál, pravá strana pak kombinaci terminálů a neterminálů (vyjma slova epsilon). Obě strany pravidel jsou odděleny šipkou "->". V rámci vstupu je možné používat libovolně bílé znaky (mezery, tab), jejich použití nemá vliv na výslednou gramatiku.
+
+### Vnitřní reprezentace bezkontextové gramatiky
+Při načítání BKG ze specifikovaného zdroje je tato uložena do čtveřice, kde jednotlivé elementy mají následující významy:
+- První element obsahuje pole `[Char]` všech neterminálních symbolů,
+- Druhý element obsahuje pole `[Char]` všech terminálních symbolů,
+- Třetí element je znak obsahující počáteční neterminální symbol,
+- Posledním elementem je pole dvojic, kde každá dvojice reprezentuje 1 pravidlo BKG; prvním elementem je neterminál levé strany, druhý element poté obsahuje pravou stranu pravidla. 
 
 ### Návratové kódy
 Program využívá tyto návratové kódy:
