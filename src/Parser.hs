@@ -4,7 +4,6 @@
 
 module Parser where
 
-
 import Data.Char
 
 
