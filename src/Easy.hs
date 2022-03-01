@@ -4,15 +4,27 @@
  
 module Easy where
 
-import qualified Data.Char as str
+import qualified Data.Char as Str
+import qualified Data.List as List
 
 
 --TODO
---removeEasyRules :: [Char] -> [(Char, String)] -> [(Char, String)]
+removeEasyRules :: [Char] -> [(Char, String)] -> [(Char, String)]
+removeEasyRules [] _ = error "No nonterminals loaded"
+removeEasyRules _ [] = []
 
 
---TODO
---createNAset :: Char -> [(Char, String)] -> [Char]
+-- Function generates N_A set for given nonterminal
+-- Params:
+-- 	list N_i: firstly, it should contain only one nonterminal
+-- 	list N_i-1: please, fill this argument with [] empty list (internal use in recursion)
+-- 	rules: rules of the CFG
+-- Returns: Set N_A = {B| A =>* B} for A in N_0 (starting nonterminal)
+-- Note: input rules should be only easy, call getOnlyEasyRules before 
+-- 	passing rule list
+createNAset nonterminalListI nonterminalListI' easyRuleList
+	| nonterminalListI /= nonterminalListI' = createNAset (List.nub (map (!! 0) (map snd [c | c <- easyRuleList, fst c `elem` nonterminalListI]) ++ nonterminalListI)) nonterminalListI easyRuleList
+	| otherwise = nonterminalListI
 
 
 -- method remove non-easy rules from list of rules
@@ -22,19 +34,18 @@ import qualified Data.Char as str
 getOnlyEasyRules :: [(Char, String)] -> [(Char, String)]
 getOnlyEasyRules [] = []
 getOnlyEasyRules (rule:ruleList)
-	| (length (snd rule) == 1) && (str.isUpper ((snd rule) !! 0)) = rule : getOnlyEasyRules ruleList
+	| (length (snd rule) == 1) && (Str.isUpper ((snd rule) !! 0)) = rule : getOnlyEasyRules ruleList
 	| otherwise = getOnlyEasyRules ruleList
 
 
--- Method returns all rules for given nonterminal
+-- method remove easy rules from list of rules
 -- Params:
--- 	nonterminal: char specifying nonterminal, for which fonction
--- 		returns all rules
--- 	list of rules: list containing rules, from which are selected rules
--- Return: list of rules, where first element is equal to selected nonterminal	
-getRulesForNonterminal :: Char -> [(Char, String)] -> [(Char, String)]
-getRulesForNonterminal _ [] = []
-getRulesForNonterminal nonterminal (rule:ruleList)
-	| fst rule == nonterminal = rule : getRulesForNonterminal ruleList
-	| otherwise = getRulesForNonterminal ruleList
+-- 	list of rules: list containing all input rules
+-- Returns: list, where all rules are not easy, meaning not in format A->B
+getOnlyNonEasyRules :: [(Char, String)] -> [(Char, String)]
+getOnlyNonEasyRules [] = []
+getOnlyNonEasyRules (rule:ruleList)
+	| (length (snd rule) == 1) && (Str.isUpper ((snd rule) !! 0)) = getOnlyNonEasyRules ruleList
+	| otherwise = rule : (getOnlyNonEasyRules ruleList)
+
 
