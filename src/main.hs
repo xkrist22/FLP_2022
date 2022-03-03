@@ -32,10 +32,7 @@ main = do
 		-- note that this should be unreachable
 		| otherwise = error "Unknown program mode"
 
-	-- show result of program
-	-- TODO
-	putStrLn (show result)
-	return 0
+	return result
 
 
 -- Function parse arguments from cmd
@@ -111,12 +108,35 @@ readCfgFromFile filename = do
 	return ["nonterminal", "terminal", "starting", "rule1", "rule2"]
 ----}
 
-runMode0 :: String -> String
-runMode0 nonParsedCfg = show (Parser.parseCfg nonParsedCfg)
+getCommaSequence [] = ""
+getCommaSequence (last:[]) = (show last) ++ "\n" 
+getCommaSequence (elem:list) = (show last) ++ "," ++ (getCommaSequence list)
 
-runMode1 :: String -> String
-runMode1 nonParsedCfg = ""
 
-runMode2 :: String -> String
-runMode2 nonParsedCfg = ""
+getRuleSequence [] = ""
+getRuleSequence (last:[]) = (show (fst last)) ++ "->" ++ (show (snd last)) ++ "\n"
+getRuleSequence (elem:list) = (show (fst elem)) ++ "->" ++ (show (snd elem)) ++ "\n" ++ (getRuleSequence list)
+
+runMode0 :: String -> IO Int
+runMode0 nonParsedCfg = do
+	let result = Parser.parseCfg nonParsedCfg
+	putStr (getCommaSequence (Parser.getNonterminals result))
+	putStr (getCommaSequence (Parser.getTerminals result))
+	putStr ((Parser.getStarting result) : "\n" )
+	putStr (getRuleSequence (Parser.getRules result))
+	return 0
+
+runMode1 :: String -> IO Int
+runMode1 nonParsedCfg = do
+	let parsedCfg = Parser.parseCfg nonParsedCfg
+	let resultRules = Easy.removeEasyRules (Parser.getNonterminals parsedCfg) (Parser.getRules parsedCfg)
+	putStr (getCommaSequence (Parser.getNonterminals parsedCfg))
+	putStr (getCommaSequence (Parser.getTerminals parsedCfg))
+	putStr ((Parser.getStarting parsedCfg) : "\n" )
+	putStr (getRuleSequence resultRules)
+	return 0
+
+runMode2 :: String -> IO Int
+runMode2 nonParsedCfg = do
+	return 1 
 

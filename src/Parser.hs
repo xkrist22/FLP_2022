@@ -106,7 +106,7 @@ checkRightPartOfRule (letter:letterList)
 -- Params
 -- 	cfg: cfg in internal format representation
 -- Returns: nonterminals of cfg
-getNonterminals :: ([Char], [Char], [Char], [(String, String)]) -> [Char]
+getNonterminals :: ([Char], [Char], [Char], [(Char, String)]) -> [Char]
 getNonterminals (nonterminals, _, _, _) = nonterminals
 
 
@@ -114,7 +114,7 @@ getNonterminals (nonterminals, _, _, _) = nonterminals
 -- Params
 -- 	cfg: cfg in internal format representation
 -- Returns: nonterminals of cfg
-getTerminals :: ([Char], [Char], [Char], [(String, String)]) -> [Char]
+getTerminals :: ([Char], [Char], [Char], [(Char, String)]) -> [Char]
 getTerminals (_, terminals, _, _) = terminals
 
 
@@ -122,7 +122,7 @@ getTerminals (_, terminals, _, _) = terminals
 -- Params
 -- 	cfg: cfg in internal format representation
 -- Returns: nonterminals of cfg
-getStarting :: ([Char], [Char], [Char], [(String, String)]) -> Char
+getStarting :: ([Char], [Char], [Char], [(Char, String)]) -> Char
 getStarting (_, _, starting, _) = starting !! 0
 
 
@@ -130,6 +130,6 @@ getStarting (_, _, starting, _) = starting !! 0
 -- Params
 -- 	cfg: cfg in internal format representation
 -- Returns: nonterminals of cfg
-getRules :: ([Char], [Char], [Char], [(String, String)]) -> [(String, String)]
+getRules :: ([Char], [Char], [Char], [(Char, String)]) -> [(Char, String)]
 getRules (_, _, _, rules) = rules
 
