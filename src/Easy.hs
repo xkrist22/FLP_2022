@@ -16,7 +16,11 @@ import qualified Data.List as List
 removeEasyRules :: [Char] -> [(Char, String)] -> [(Char, String)]
 removeEasyRules [] _ = []
 removeEasyRules _ [] = []
-removeEasyRules (nonterminal:nonterminalList) ruleList = (removeEasyRulesForNonterminal nonterminal ruleList) ++ (removeEasyRules nonterminalList ruleList)
+removeEasyRules (nonterminal:nonterminalList) ruleList = nonEasyRulesForNonterminal ++ nonEasyRulesForOther
+	where
+		nonEasyRulesForNonterminal = removeEasyRulesForNonterminal nonterminal ruleList 
+		nonEasyRulesForOther = removeEasyRules nonterminalList ruleList
+
 
 -- Function removes easy rules for one nonterminal
 -- Params:
@@ -24,24 +28,38 @@ removeEasyRules (nonterminal:nonterminalList) ruleList = (removeEasyRulesForNont
 -- 	rule list: list of all rules from input
 -- Returns: list of non easy rules, where on left side is selected nonterminal
 removeEasyRulesForNonterminal :: Char -> [(Char, String)] -> [(Char, String)]
--- take rules, where on left side is nonterminal from N_A list of selected nonterminal A, then take only non easy rules from 
-removeEasyRulesForNonterminal nonterminal ruleList = zip (repeat nonterminal) (map snd (getOnlyNonEasyRules [rule | rule <- ruleList, fst rule `elem` nAList]))
-	where nAList = createNAset [nonterminal] [] (getOnlyEasyRules ruleList)
+removeEasyRulesForNonterminal nonterminal ruleList = newRulesForNonterminal
+	where
+		-- create N_A list for selected nonterminal A
+		nAList = createNAset [nonterminal] [] (getOnlyEasyRules ruleList)
+		-- take rules, where on left side is any nonterminal from N_A list
+		aRules = [rule | rule <- ruleList, fst rule `elem` nAList]
+		-- take only right sides of rules
+		rightSidesOfNonEasyRules = map snd $ getOnlyNonEasyRules aRules
+		-- create new rules for given nonterminal and filtered right sides of rules
+		newRulesForNonterminal = zip (repeat nonterminal) rightSidesOfNonEasyRules
+
 
 -- Function generates N_A set for given nonterminal
 -- Params:
 -- 	list N_i: firstly, it should contain only one nonterminal
--- 	list N_i-1: please, fill this argument with [] empty list (internal use in recursion)
+-- 	list N_(i-1): please, fill this argument with [] empty list (internal use in recursion)
 -- 	rules: rules of the CFG
 -- Returns: Set N_A = {B| A =>* B} for A in N_0 (starting nonterminal)
 -- Note: input rules should be only easy, call getOnlyEasyRules before 
 -- 	passing rule list
 createNAset nonterminalListI nonterminalListI' easyRuleList
-	-- create list of rules, where nonterminal on left side is in N_i-1 (actuall is N_i), then create list from right parts of selected rules
-	-- then concat created list N_i with N_i-1 and removes duplicates and call createNAlist to simulate next iteration
-	| nonterminalListI /= nonterminalListI' = createNAset (List.nub (map (!! 0) (map snd [c | c <- easyRuleList, fst c `elem` nonterminalListI]) ++ nonterminalListI)) nonterminalListI easyRuleList
-	-- in case of no change, return created list
+	| setDiffersFromPreviousStep = createNAset nIListWithoutDuplicates nonterminalListI easyRuleList
 	| otherwise = nonterminalListI
+	where
+		-- condition N_i != N_(i-1)
+		setDiffersFromPreviousStep = nonterminalListI /= nonterminalListI' 
+		-- list od rules, where nonterminal on left side is on N_(i-1)
+		ruleList = [c | c <- easyRuleList, fst c `elem` nonterminalListI]
+		-- take only right parts of rules (create N_i) and concat it with already created N_(i-1)
+		nIList = map (!!0) (map snd ruleList) ++ nonterminalListI
+		-- remove duplicates
+		nIListWithoutDuplicates = List.nub nIList
 
 
 -- method remove non-easy rules from list of rules
@@ -51,10 +69,10 @@ createNAset nonterminalListI nonterminalListI' easyRuleList
 getOnlyEasyRules :: [(Char, String)] -> [(Char, String)]
 getOnlyEasyRules [] = []
 getOnlyEasyRules (rule:ruleList)
-	-- if on left side is only one Nonterminal, then add it to return list
-	| (length (snd rule) == 1) && (Str.isUpper ((snd rule) !! 0)) = rule : getOnlyEasyRules ruleList
-	-- else do not add actuall rule to returned rules
+	| oneNonterminalOnLeftSide = rule : getOnlyEasyRules ruleList
 	| otherwise = getOnlyEasyRules ruleList
+	where
+		oneNonterminalOnLeftSide = (length (snd rule) == 1) && (Str.isUpper ((snd rule) !! 0)) 
 
 
 -- method remove easy rules from list of rules
@@ -64,9 +82,8 @@ getOnlyEasyRules (rule:ruleList)
 getOnlyNonEasyRules :: [(Char, String)] -> [(Char, String)]
 getOnlyNonEasyRules [] = []
 getOnlyNonEasyRules (rule:ruleList)
-	-- if on right side is not only one nonterminal, append rule to return list
-	| (length (snd rule) == 1) && (Str.isUpper ((snd rule) !! 0)) = getOnlyNonEasyRules ruleList
-	-- else do not append rule
+	| oneNonterminalOnLeftSide = getOnlyNonEasyRules ruleList
 	| otherwise = rule : (getOnlyNonEasyRules ruleList)
-
+	where
+		oneNonterminalOnLeftSide = (length (snd rule) == 1) && (Str.isUpper ((snd rule) !! 0)) 
 

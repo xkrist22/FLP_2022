@@ -22,17 +22,28 @@ main = do
 		| otherwise = readCfgFromFile (snd progSettings)
 	--}
 
-	let nonParsedCfg = removeWhitespace "A,B,S\na,b\nS\nS->AB\nA->a\nB->b"
+	let nonParsedCfg = removeWhitespace "E,T,F\na,m,l,r,i\nE\nE->EaT\nE->T\nT->TmF\nT->F\nF->lEr\nF->i\n"
 
-	-- get result based on selected mode
-	let result
-		| getMode progSettings == 0 = runMode0 nonParsedCfg
-		| getMode progSettings == 1 = runMode1 nonParsedCfg
-		| getMode progSettings == 2 = runMode2 nonParsedCfg
-		-- note that this should be unreachable
-		| otherwise = error "Unknown program mode"
+	if (getMode progSettings == 0) then do
+		let result = Parser.parseCfg nonParsedCfg
+		putStr (getCommaSequence (Parser.getNonterminals result))
+		putStr (getCommaSequence (Parser.getTerminals result))
+		putStr ((Parser.getStarting result) : "\n" )
+		putStr (getRuleSequence (Parser.getRules result))
 
-	return result
+	else if (getMode progSettings == 1) then do
+		let parsedCfg = Parser.parseCfg nonParsedCfg
+		let resultRules = Easy.removeEasyRules (Parser.getNonterminals parsedCfg) (Parser.getRules parsedCfg)
+		putStr (getCommaSequence (Parser.getNonterminals parsedCfg))
+		putStr (getCommaSequence (Parser.getTerminals parsedCfg))
+		putStr ((Parser.getStarting parsedCfg) : "\n" )
+		putStr (getRuleSequence resultRules)
+
+	else if (getMode progSettings == 2) then error "Not implemented"
+
+	else error "Unknown program mode"
+
+	return 0
 
 
 -- Function parse arguments from cmd
@@ -92,10 +103,9 @@ getMode (mode, _) = mode
 getCfgSource :: (Int, String) -> String 
 getCfgSource (_, source) = source 
  
-
+{--
 -- Function reads input CFG from stdout
 -- Returns: string containing input CFG
-{--
 readCfgFromStdout = do
 	return ["nonterminal", "terminal", "starting", "rule1", "rule2"]
 
@@ -108,35 +118,32 @@ readCfgFromFile filename = do
 	return ["nonterminal", "terminal", "starting", "rule1", "rule2"]
 ----}
 
+
+-- Function takes element from list and create string, where list elements 
+-- 	are separated by comma
+-- Params:
+-- 	list: list containing element to be printed as list separated by commas
+-- Returns: comma separated list as string
+-- Examples:
+-- 	> getCommaSequence "ABC"
+-- 	> "A,B,C"
+getCommaSequence :: [Char] -> String
 getCommaSequence [] = ""
-getCommaSequence (last:[]) = (show last) ++ "\n" 
-getCommaSequence (elem:list) = (show last) ++ "," ++ (getCommaSequence list)
+getCommaSequence (lastChar:[]) = [lastChar] ++ "\n"
+getCommaSequence (charElem:charList) = [charElem] ++ "," ++ getCommaSequence charList
 
 
+-- Function takes list of tuples and creates string as list of rules
+-- Params:
+-- 	list of rules: rules in internal format [(left, right)]
+-- Returns: list of rules, each rule separated by \n, sides by "->"
+-- Examples:
+-- 	> getRuleSequence [('A', "aAa"), ('B', "bBb")]
+-- 	> A->aAa
+-- 	  B->bBb
+getRuleSequence :: [(Char,String)] -> String
 getRuleSequence [] = ""
-getRuleSequence (last:[]) = (show (fst last)) ++ "->" ++ (show (snd last)) ++ "\n"
-getRuleSequence (elem:list) = (show (fst elem)) ++ "->" ++ (show (snd elem)) ++ "\n" ++ (getRuleSequence list)
+getRuleSequence (lastRule:[]) = [fst lastRule] ++ "->" ++ (snd lastRule) ++ "\n"
+getRuleSequence (rule:ruleList) = [fst rule] ++ "->" ++ (snd rule) ++ "\n" ++ (getRuleSequence ruleList)
 
-runMode0 :: String -> IO Int
-runMode0 nonParsedCfg = do
-	let result = Parser.parseCfg nonParsedCfg
-	putStr (getCommaSequence (Parser.getNonterminals result))
-	putStr (getCommaSequence (Parser.getTerminals result))
-	putStr ((Parser.getStarting result) : "\n" )
-	putStr (getRuleSequence (Parser.getRules result))
-	return 0
-
-runMode1 :: String -> IO Int
-runMode1 nonParsedCfg = do
-	let parsedCfg = Parser.parseCfg nonParsedCfg
-	let resultRules = Easy.removeEasyRules (Parser.getNonterminals parsedCfg) (Parser.getRules parsedCfg)
-	putStr (getCommaSequence (Parser.getNonterminals parsedCfg))
-	putStr (getCommaSequence (Parser.getTerminals parsedCfg))
-	putStr ((Parser.getStarting parsedCfg) : "\n" )
-	putStr (getRuleSequence resultRules)
-	return 0
-
-runMode2 :: String -> IO Int
-runMode2 nonParsedCfg = do
-	return 1 
 

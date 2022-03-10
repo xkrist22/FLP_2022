@@ -59,13 +59,22 @@ parseNonterminals [] = []
 -- Returns: list of terminal symbols
 parseTerminals :: String -> [Char] 
 parseTerminals (terminal:delimiter:terminalList)
-	| (isLower terminal) && (delimiter == ',') = (terminal : parseTerminals terminalList)
+	| isTerminal && isDelimiter = (terminal : parseTerminals terminalList)
  	| otherwise = error ("Invalid terminal (not in [a-z]): " ++ [terminal])
+	where
+		isTerminal = isLower terminal
+		isDelimiter = delimiter == ','
 parseTerminals (terminal:[])
-	| (isLower terminal) = [terminal]
+	| isTerminal = [terminal]
 	| otherwise = error ("Invalid terminal (not in [a-z]): " ++ [terminal])
+	where isTerminal = isLower terminal
 parseTerminals [] = []
 
+
+-- Function parse rule of list
+-- Params:
+-- 	list of string, where each string contains one line containing one rule
+-- Returns: list of rules in internal format [(left nonterminal, right part)]
 parseRulesList :: [String] -> [(Char, String)]
 parseRulesList (rule:ruleList) = (parseRule rule) : (parseRulesList ruleList)
 parseRulesList [] = []
@@ -83,8 +92,12 @@ parseRulesList [] = []
 -- 	> ('A', "BAa")
 parseRule :: String -> (Char, String) 	
 parseRule rule@(nonterminal:arrow_dash:arrow_greater:rightRulePart)
-	| (isUpper nonterminal) && (arrow_dash == '-') && (arrow_greater == '>') && (checkRightPartOfRule rightRulePart) = (nonterminal, rightRulePart)
+	| isNonterminal && isArrow && isValidRightPart = (nonterminal, rightRulePart)
 	| otherwise = error ("Invalid format of rule: " ++ rule)
+	where 
+		isNonterminal = isUpper nonterminal
+		isArrow = (arrow_dash == '-') && (arrow_greater == '>') 
+		isValidRightPart = checkRightPartOfRule rightRulePart 
 parseRule rule = error ("Invalid format of rule: " ++ rule)
 
 
