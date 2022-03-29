@@ -9,41 +9,51 @@ import qualified Cnf
 
 
 -- Main function
-main :: IO Int
+main :: IO ()
 main = do
 	-- Parse cmd arguments
 	args <- Env.getArgs
 	let progSettings = parseArgs args
 
-	-- TODO: implement reading of input
-	{--
-	let nonParsedCfg
-		| snd progSettings == "stdout" = readCfgFromStdout
-		| otherwise = readCfgFromFile (snd progSettings)
-	--}
-
-	let nonParsedCfg = removeWhitespace "E,T,F\na,m,l,r,i\nE\nE->EaT\nE->T\nT->TmF\nT->F\nF->lEr\nF->i\n"
+	nonParsedCfg <- readInput (getSource progSettings)
 
 	if (getMode progSettings == 0) then do
-		let result = Parser.parseCfg nonParsedCfg
+		-- parse input cfg
+		let result = Parser.parseCfg (removeWhitespace nonParsedCfg)
+		-- print result to stdout
 		putStr (getCommaSequence (Parser.getNonterminals result))
 		putStr (getCommaSequence (Parser.getTerminals result))
 		putStr ((Parser.getStarting result) : "\n" )
 		putStr (getRuleSequence (Parser.getRules result))
 
 	else if (getMode progSettings == 1) then do
-		let parsedCfg = Parser.parseCfg nonParsedCfg
+		-- parse input cfg
+		let parsedCfg = Parser.parseCfg (removeWhitespace nonParsedCfg)
+		-- remove easy rules
 		let resultRules = Easy.removeEasyRules (Parser.getNonterminals parsedCfg) (Parser.getRules parsedCfg)
+		-- print result to stdout
 		putStr (getCommaSequence (Parser.getNonterminals parsedCfg))
 		putStr (getCommaSequence (Parser.getTerminals parsedCfg))
 		putStr ((Parser.getStarting parsedCfg) : "\n" )
 		putStr (getRuleSequence resultRules)
 
-	else if (getMode progSettings == 2) then error "Not implemented"
+	else if (getMode progSettings == 2) then do
+		-- parse input cfg
+		let parsedCfg = Parser.parseCfg (removeWhitespace nonParsedCfg)
+		-- remove easy rules
+		let nonEasyRules = Easy.removeEasyRules (Parser.getNonterminals parsedCfg) (Parser.getRules parsedCfg)
+		let resultRules = Cnf.getCnfRules nonEasyRules
+		let resultNonterminals = Cnf.getNewNonterminals resultRules 
+		-- print result to stdout
+		putStr (resultNonterminals)
+		putStr (getCommaSequence (Parser.getTerminals parsedCfg))
+		putStr ((Parser.getStarting parsedCfg) : "\n" )
+		putStr (getRuleSequence' resultRules)
 
+	-- NOTE: this should be unreachable
 	else error "Unknown program mode"
 
-	return 0
+	return ()
 
 
 -- Function parse arguments from cmd
@@ -93,30 +103,16 @@ removeWhitespace [] = []
 -- Returns: desired mode of program 
 getMode :: (Int, String) -> Int
 getMode (mode, _) = mode 
- 
-
--- Getter for source of input CFG
--- Params:
--- 	progSettings: tuple containing info about desired mode of
--- 		program and source of cfg
--- Returns: source of cfg 
-getCfgSource :: (Int, String) -> String 
-getCfgSource (_, source) = source 
- 
-{--
--- Function reads input CFG from stdout
--- Returns: string containing input CFG
-readCfgFromStdout = do
-	return ["nonterminal", "terminal", "starting", "rule1", "rule2"]
 
 
--- Function reads input CFG from given filename
--- Params:
--- 	filename: string containing name of the file where CFG is stored
--- Returns: string containing input CFG	
-readCfgFromFile filename = do
-	return ["nonterminal", "terminal", "starting", "rule1", "rule2"]
-----}
+getSource :: (Int, String) -> String
+getSource (_, source) = source
+
+
+readInput :: String -> IO String
+readInput source
+	| source == "stdout" = getContents
+	| otherwise = readFile source 
 
 
 -- Function takes element from list and create string, where list elements 
@@ -143,7 +139,12 @@ getCommaSequence (charElem:charList) = [charElem] ++ "," ++ getCommaSequence cha
 -- 	  B->bBb
 getRuleSequence :: [(Char,String)] -> String
 getRuleSequence [] = ""
-getRuleSequence (lastRule:[]) = [fst lastRule] ++ "->" ++ (snd lastRule) ++ "\n"
-getRuleSequence (rule:ruleList) = [fst rule] ++ "->" ++ (snd rule) ++ "\n" ++ (getRuleSequence ruleList)
+getRuleSequence (lastRule:[]) = [fst lastRule] ++ "->" ++ snd lastRule ++ "\n"
+getRuleSequence (rule:ruleList) = [fst rule] ++ "->" ++ snd rule ++ "\n" ++ getRuleSequence ruleList
+-- getRuleSequence version for (String, String) rules
+getRuleSequence' :: [(String,String)] -> String
+getRuleSequence' [] = ""
+getRuleSequence' (lastRule:[]) = fst lastRule ++ "->" ++ snd lastRule ++ "\n"
+getRuleSequence' (rule:ruleList) = fst rule ++ "->" ++ snd rule ++ "\n" ++ getRuleSequence' ruleList
 
 

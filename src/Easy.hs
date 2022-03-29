@@ -48,6 +48,7 @@ removeEasyRulesForNonterminal nonterminal ruleList = newRulesForNonterminal
 -- Returns: Set N_A = {B| A =>* B} for A in N_0 (starting nonterminal)
 -- Note: input rules should be only easy, call getOnlyEasyRules before 
 -- 	passing rule list
+createNAset :: [Char] -> [Char] -> [(Char, String)] -> [Char]
 createNAset nonterminalListI nonterminalListI' easyRuleList
 	| setDiffersFromPreviousStep = createNAset nIListWithoutDuplicates nonterminalListI easyRuleList
 	| otherwise = nonterminalListI
