@@ -99,17 +99,28 @@ removeWhitespace [] = []
 -- Getter for mode of program
 -- Params:
 -- 	progSettings: tuple containing info about desired mode of
--- 		program and source of scf
+-- 		program and source of cfg
 -- Returns: desired mode of program 
 getMode :: (Int, String) -> Int
 getMode (mode, _) = mode 
 
 
+-- Getter for source of cfg
+-- Params:
+-- 	progSettings: tuple containing info about desired mode of
+-- 		program and source of cfg (either "stdout" or
+-- 		name of file)
+-- Returns: input source of cfg
 getSource :: (Int, String) -> String
 getSource (_, source) = source
 
 
-readInput :: String -> IO String
+-- Function for cfg reading
+-- Params:
+-- 	string: can contain either stdout, meaning reading from stdout,
+-- 		or name of file, where input CFG is stored
+-- Returns: string containing input CFG
+readInput :: FilePath -> IO String
 readInput source
 	| source == "stdout" = getContents
 	| otherwise = readFile source 

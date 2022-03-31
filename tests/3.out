@@ -1,0 +1,8 @@
+A,a',<Aa>
+a
+A
+A->a'<Aa>
+a'->a
+<Aa>->Aa'
+A->a
+

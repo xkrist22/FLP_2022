@@ -3,10 +3,16 @@ module Cnf where
 import Data.Char
 import Data.List
 
+-- Input type of rules
 type TRuleIn = (Char, String)
+-- Output type of rules (on left side can be strings longer than 1 char)
 type TRuleOut = (String, String) 
 
 
+-- Method uses all functions below for generating rules in CNF from input rules
+-- Args:
+-- 	input rules: list of tuples containing input rules
+-- Returns: rules in Chomsky normal form
 getCnfRules :: [TRuleIn] -> [TRuleOut]
 getCnfRules rules = nub $ alreadyOkRules ++ easedRules ++ terminalRules
 	where
@@ -15,7 +21,11 @@ getCnfRules rules = nub $ alreadyOkRules ++ easedRules ++ terminalRules
 		terminalRules = addTerminalRules easedRules
 
 
--- Method takes all nonterminals from rules and return string in output format of program (comma-separated nonterminals)
+-- Method takes all nonterminals from rules and return 
+-- 	string in output format of program (comma-separated nonterminals)
+-- Args:
+-- 	list of rules: list of generated rules in CNF
+-- Returns: list of all nonterminals used in rules
 getNewNonterminals :: [TRuleOut] -> String
 getNewNonterminals [] = ""
 getNewNonterminals (lastRule:[]) = fst lastRule
@@ -23,6 +33,9 @@ getNewNonterminals (rule:ruleList) =  fst rule ++ "," ++ getNewNonterminals rule
 
 
 -- Method reformat input list of rules in format [(Char, String)] into format [(String, String)]
+-- Args:
+-- 	rules: rules in input format, meaning on right is only one char
+-- Returns: rules in output type, first elem of tuples is String, not Char
 fromInToOutFormat :: [TRuleIn] -> [TRuleOut]
 fromInToOutFormat [] = []
 fromInToOutFormat (rule:ruleList) = [([fst rule], snd rule)] ++ fromInToOutFormat ruleList
@@ -72,7 +85,8 @@ regenerateRuleList (rule:ruleList) = (generateNewRules [fst rule] (snd rule)) ++
 
 -- Method generates new rules for one rule
 -- Args:
--- 	rule in format (String, String)
+-- 	rule: exactly one rule in format (String, String)
+-- Returns: list of rules in CNF generated from input rule
 generateNewRules :: String -> String -> [TRuleOut]
 generateNewRules left origRight@(firstElem:others)
 	| isLongerThan2 && isTerminal = [(left, right1)] ++ (generateNewRules untouchedChain others)
@@ -97,7 +111,9 @@ generateNewRules left origRight@(firstElem:others)
 		bothNonterminal = (isUpper firstElem) && (isUpper (others !! 0))
 		bothTerminal = (isLower firstElem) && (isLower (others !! 0))
 		fstNonterminal = isUpper firstElem
+-- This should be unreachable
 generateNewRules _ _ = error "Internal error during CFG generating"
+
 
 -- Method add new rules for terminal symbols
 -- Params:

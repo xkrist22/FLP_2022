@@ -1,0 +1,13 @@
+E,T,F
+a,m,l,r,i
+E
+E->EaT
+E->TmF
+E->lEr
+E->i
+T->TmF
+T->lEr
+T->i
+F->lEr
+F->i
+

@@ -5,7 +5,8 @@ run:
 	./flp21-fun
 
 test:
-	./test.sh
+	chmod +x tests/test.sh
+	./tests/test.sh
 	
 clean:
 	cd src;rm *.hi *.o 

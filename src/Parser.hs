@@ -76,7 +76,7 @@ parseTerminals [] = []
 -- 	list of string, where each string contains one line containing one rule
 -- Returns: list of rules in internal format [(left nonterminal, right part)]
 parseRulesList :: [String] -> [(Char, String)]
-parseRulesList (rule:ruleList) = (parseRule rule) : (parseRulesList ruleList)
+parseRulesList (rule:ruleList) = filter ((/='$').fst) $ (parseRule rule) : (parseRulesList ruleList)
 parseRulesList [] = []
 
 
@@ -90,7 +90,8 @@ parseRulesList [] = []
 -- Example:
 -- 	> parseRule "A->BAa"  	
 -- 	> ('A', "BAa")
-parseRule :: String -> (Char, String) 	
+parseRule :: String -> (Char, String)
+parseRule "" = ('$', "$$$") 
 parseRule rule@(nonterminal:arrow_dash:arrow_greater:rightRulePart)
 	| isNonterminal && isArrow && isValidRightPart = (nonterminal, rightRulePart)
 	| otherwise = error ("Invalid format of rule: " ++ rule)
